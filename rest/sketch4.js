@@ -125,21 +125,31 @@ function setup() {
 
   // Create Layout GUI
   var gui = new dat.gui.GUI({name: 'UB GUI'});
-  // gui.remember(obj);
-  // bucketSize: 50,
-  // c: 2000000,
-  // gap: 2000,
-  // drag: 0.86,
-  // minAlpha: 100
-  gui.add(variables, 'bucketSize', 10, 10, 1);
-  gui.add(variables, 'c', 1500000, 2500000, 10000);
-  gui.add(variables, 'gap', 0, 1000, 1);
-  gui.add(variables, 'drag', 0.50, 1.20, 0.01);
+  gui.useLocalStorage = true;
+
+  var bController = gui.add(variables, 'bucketSize', 25, 100, 1);
+  var cController = gui.add(variables, 'c', 1500000, 2500000, 10000);
+  var gController = gui.add(variables, 'gap', 13, 50, 1);
+  var dController = gui.add(variables, 'drag', 0.50, 1.20, 0.01);
   gui.add(variables, 'minAlpha', 80, 255, 1);
   gui.add(variables, 'speed', 0, 1.00, 0.01);
+  gui.remember(variables);
 
-  // gui = createGui('P5 GUI');
-  // gui.addGlobals('bucketSize', 'c', 'gap', 'drag', 'minAlpha');
+  var reInit = function(value) {
+    // Fires when a controller loses focus.
+    // alert("The new value is " + value);
+    logo = createGraphics(w, h);
+    logo.background(51);
+    img = createImage(1920, 1080);
+    img.resize(width, 0);
+    population = new Population();
+    population.init();
+  }
+
+  bController.onFinishChange(reInit);
+  cController.onFinishChange(reInit);
+  gController.onFinishChange(reInit);
+  dController.onFinishChange(reInit);
 }
 
 // check for keyboard events
@@ -313,38 +323,53 @@ function Cell(pos, home, maxdist, vel, dna) {
     this.vel.add(p5.Vector.sub(to, this.dir).mult(mag * force));
   };
 
-  this.mouseAcc = function() {
-    var nose = {
-      x: -1000,
-      y: -1000
-    };
+  // this.mouseAcc = function() {
+  //   var dir = createVector(mouseX, mouseY).sub(this.pos);
+  //   var dist = dir.mag();
+  //   var force = cubicPulse(0, variables.gap*10, dist) * 8;
+  //   return p5.Vector.random2D().setMag(force);
+  // }
 
-    if (poses.length) {
-      nose = poses.reduce((a, b) =>
-        a.pose.nose.confidence > b.pose.nose.confidence ? a : b
-      ).pose.nose;
-      // nose.x = (width / 2) + ((nose.x - (width / 2)) * -1)
-      // nose.x = width - nose.x;
-    }
+  // this.mouseAcc = function() {
+  //   var nose = {
+  //     x: -1000,
+  //     y: -1000
+  //   };
+  //   // console.log(poses);
+  //   if (poses.length) {
+  //     nose = poses.reduce((a, b) =>
+  //       a.pose.nose.confidence > b.pose.nose.confidence ? a : b
+  //     ).pose.nose;
+  //     // nose.x = (width / 2) + ((nose.x - (width / 2)) * -1)
+  //     // nose.x = width - nose.x;
+
+  //   }
     
-    // SUB 
-    var dir = createVector(nose.x, nose.y).sub(this.pos);
-    console.log(nose);
-    console.log(dir);
-  // noStroke();
-  //   pointLight(color(255), createVector(sin(millis() / 1000) * 20, -40, -10));
-  //   scale(0.75);
-  //   sphere();
+  //   // SUB 
+  //   var dir = createVector(nose.x, nose.y).sub(this.pos);
+  //   // console.log(nose);
+  //   // console.log(dir);
+  // // noStroke();
+  // //   pointLight(color(255), createVector(sin(millis() / 1000) * 20, -40, -10));
+  // //   scale(0.75);
+  // //   sphere();
 
+  //   var dist = dir.mag();
+  //   var force = cubicPulse(0, variables.gap * 10, dist) * 12;
+  //   // console.log(p5.Vector.random2D().setMag(force));
+  //   return p5.Vector.random2D().setMag(force);
+  // };
+
+  this.mouseAcc = function() {
+    var dir = createVector(mouseX, mouseY).sub(this.pos);
     var dist = dir.mag();
-    var force = cubicPulse(0, variables.gap * 10, dist) * 4;
-    console.log(p5.Vector.random2D().setMag(force));
+    var force = cubicPulse(0, gap*10, dist) * 12;
     return p5.Vector.random2D().setMag(force);
-  };
+  }
 
   this.update = function() {
     this.vel.mult(variables.drag);
-    // this.vel.add(this.mouseAcc());
+    this.vel.add(this.mouseAcc());
     this.vel.add(
       this.home
         .copy()
@@ -352,9 +377,9 @@ function Cell(pos, home, maxdist, vel, dna) {
         .mult(0.005)
     );
     // the dna -> cosine creates the effect where it goes from triangled to squared
-    this.vel.add(this.getDna()
-    .mult(cos(frameCount/400)*.5+.5)
-    );
+    // this.vel.add(this.getDna()
+    // .mult(cos(frameCount/400)*.5+.5)
+    // );
     this.pos.add(this.vel.copy().mult(variables.speed));
     this.time += 1;
     this.time %= this.dna.seq.length;
