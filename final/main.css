@@ -22,3 +22,8 @@ a:hover {
 #p5img {
   width: 100%;
 }
+
+
+canvas {
+  vertical-align: top;
+}

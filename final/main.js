@@ -1,119 +1,3 @@
-
-
-// Copyright (c) 2018 ml5
-//
-// This software is released under the MIT License.
-// https://opensource.org/licenses/MIT
-
-/* ===
-ml5 Example
-PoseNet example using p5.js
-=== */
-
-let video;
-let poseNet;
-let poses = [];
-
-
-let kinectX, kinectY = 0;
-
-var joints = [];
-
-// function draw() {
-// 	background(0, 7);
-// 	stroke(255, 100);
-// 	for (var i=0; i<joints.length; i++) {
-// 		for (var j=i+1; j<joints.length; j++) {
-// 			var x1 = joints[i].x + random(-15, 15);
-// 			var y1 = joints[i].y + random(-15, 15);
-// 			var x2 = joints[j].x + random(-15, 15);
-// 			var y2 = joints[j].y + random(-15, 15);
-// 			line(x1, y1, x2, y2);
-// 		}
-// 	}
-// }
-
-function receiveOsc(msg) {
-  if (msg.length > 2) {
-    // kinectX = (msg[1] + 1) / 2 * 1920;
-    // kinectY = Math.abs((msg[2] - 1) / 2) * 1080;
-  }
-}
-
-function setupOsc(oscPortIn, oscPortOut) {
-	var socket = io.connect('http://127.0.0.1:8081', { port: 8081, rememberTransport: false });
-	socket.on('connect', function() {
-		socket.emit('config', {	
-			server: { port: oscPortIn,  host: '192.168.178.101'},
-			client: { port: oscPortOut, host: '127.0.0.1'}
-		});
-	});
-	socket.on('message', function(msg) {
-    receiveOsc(msg);
-	});
-}
-
-
-
-navigator.requestMIDIAccess()
-  .then(function(access) {
-
-     // Get lists of available MIDI controllers
-     const inputs = access.inputs.values();
-     const outputs = access.outputs.values();
-
-     access.onstatechange = function(e) {
-
-       // Print information about the (dis)connected MIDI controller
-       console.log(e.port.name, e.port.manufacturer, e.port.state);
-     };
-  });
-  
-
-function modelReady() {
-  console.log("model loaded");
-}
-
-// A function to draw ellipses over the detected keypoints
-function drawKeypoints() {
-  // Loop through all the poses detected
-  // for (let i = 0; i < poses.length; i++) {
-  //   // For each pose detected, loop through all the keypoints
-  //   let pose = poses[i].pose;
-  //   // console.log(pose);
-  //   for (let j = 0; j < pose.keypoints.length; j++) {
-  //     // A keypoint is an object describing a body part (like rightArm or leftShoulder)
-  //     let keypoint = pose.keypoints[j];
-  //     // Only draw an ellipse is the pose probability is bigger than 0.2
-  //     if (keypoint.score > 0.2) {
-  //       fill(255, 0, 0);
-  //       noStroke();
-  //       ellipse(keypoint.position.x, keypoint.position.y, 10, 10);
-  //     }
-  //   }
-  // }
-}
-
-// A function to draw the skeletons
-function drawSkeleton() {
-  // Loop through all the skeletons detected
-  for (let i = 0; i < poses.length; i++) {
-    let skeleton = poses[i].skeleton;
-    // For every skeleton, loop through all body connections
-    for (let j = 0; j < skeleton.length; j++) {
-      let partA = skeleton[j][0];
-      let partB = skeleton[j][1];
-      stroke(255, 0, 0);
-      line(
-        partA.position.x,
-        partA.position.y,
-        partB.position.x,
-        partB.position.y
-      );
-    }
-  }
-}
-
 var h =
   "innerHeight" in window
     ? window.innerHeight
@@ -147,10 +31,6 @@ var distance = function(a, b) {
   return Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2);
 };
 
-// function preload() {
-//   img = loadImage("https://cdn.rawgit.com/worosom/sane/a21b0476/static/index/img/sane_logo_wl_1920_coded_rgb.png");
-// }
-
 function setup() {
   createCanvas(w, h, "WEBGL");
   variables.gap = max(parseInt(variables.bucketSize / 2), 2);
@@ -163,58 +43,9 @@ function setup() {
   population = new Population();
   population.init();
 
-
-  setUpPosenet();
-
-
-  // Create Layout GUI
-  var gui = new dat.gui.GUI({name: 'UB GUI'});
-  gui.useLocalStorage = true;
-
-  var bController = gui.add(variables, 'bucketSize', 25, 100, 1);
-  var cController = gui.add(variables, 'c', 1500000, 2500000, 10000);
-  var gController = gui.add(variables, 'gap', 13, 50, 1);
-  var dController = gui.add(variables, 'drag', 0.50, 1.20, 0.01);
-  gui.add(variables, 'minAlpha', 80, 255, 1);
-  gui.add(variables, 'speed', 0, 1.00, 0.01);
-  gui.add(variables, 'dnaSpeed', 0, 1.00, 0.01);
-  gui.remember(variables);
-
-  var reInit = function(value) {
-    // Fires when a controller loses focus.
-    // alert("The new value is " + value);
-    logo = createGraphics(w, h);
-    logo.background(51);
-    img = createImage(1920, 1080);
-    img.resize(width, 0);
-    population = new Population();
-    population.init();
-  }
-
-  bController.onFinishChange(reInit);
-  cController.onFinishChange(reInit);
-  gController.onFinishChange(reInit);
-  dController.onFinishChange(reInit);
-
-
-
-  // OSC
-	// setupOsc(7400, 3334);
-}
-
-function setUpPosenet(){
-  video = createCapture(VIDEO);
-  video.size(width, height);
-
-  // Create a new poseNet method with a single detection
-  poseNet = ml5.poseNet(video, modelReady);
-  // This sets up an event that fills the global variable "poses"
-  // with an array every time new poses are detected
-  poseNet.on("pose", function(results) {
-    poses = results;
-  });
-  // Hide the video element, and just show the canvas
-  video.hide();
+  // initPosenet();
+  initGui();
+  initOsc();
 }
 
 // check for keyboard events
@@ -253,14 +84,8 @@ function drawImage(c) {
 function draw() {
   clear();
   population.update();
-  //image(logo, 0, 0);
   population.display();
   strokeWeight(1);
-  // image(video, 0, 0, width, height);
-
-  // We can call both functions to draw all keypoints and the skeletons
-  drawKeypoints();
-  drawSkeleton();
 }
 
 // POPULATION
@@ -388,6 +213,7 @@ function Cell(pos, home, maxdist, vel, dna) {
     this.vel.add(p5.Vector.sub(to, this.dir).mult(mag * force));
   };
 
+  // Should be enabled when tracking with ml5
   // this.mouseAcc = function() {
   //   var nose = {
   //     x: -1000,
@@ -417,33 +243,40 @@ function Cell(pos, home, maxdist, vel, dna) {
   //   return p5.Vector.random2D().setMag(force);
   // };
 
-  this.mouseAcc = function() {
+  // this.mouseAcc = function() {
 
-    var nose = {
-      x: -1000,
-      y: -1000
-    };
-    // console.log(poses);
-    if (poses.length) {
-      nose = poses.reduce((a, b) =>
-        a.pose.nose.confidence > b.pose.nose.confidence ? a : b
-      ).pose.nose;
-      // nose.x = (width / 2) + ((nose.x - (width / 2)) * -1)
-      // nose.x = width - nose.x;
-    }
-    // var x = (nose.x + 1) / 2 * 1920;
-    // var y = Math.abs((nose.y - 1) / 2) * 1080;
-    // console.log(x);
-    // console.log(y);
-    var x = Math.abs(nose.x - 1920);
-    // console.log(nose.x);
+  //   var nose = {
+  //     x: -1000,
+  //     y: -1000
+  //   };
+  //   // console.log(poses);
+  //   if (poses.length) {
+  //     nose = poses.reduce((a, b) =>
+  //       a.pose.nose.confidence > b.pose.nose.confidence ? a : b
+  //     ).pose.nose;
+  //     // nose.x = (width / 2) + ((nose.x - (width / 2)) * -1)
+  //     // nose.x = width - nose.x;
+  //   }
+  //   // var x = (nose.x + 1) / 2 * 1920;
+  //   // var y = Math.abs((nose.y - 1) / 2) * 1080;
+  //   // console.log(x);
+  //   // console.log(y);
+  //   var x = Math.abs(nose.x - 1920);
+  //   // console.log(nose.x);
 
-    // 1920 = links;
-    // 0 = rechts; 
+  //   // 1920 = links;
+  //   // 0 = rechts; 
 
-    var dir = createVector(x, nose.y).sub(this.pos);
+  //   var dir = createVector(x, nose.y).sub(this.pos);
+  //   var dist = dir.mag();
+  //   var force = cubicPulse(0, variables.gap*10, dist) * 12;
+  //   return p5.Vector.random2D().setMag(force);
+  // }
+
+   this.mouseAcc = function() {
+    var dir = createVector(mouseX, mouseY).sub(this.pos);
     var dist = dir.mag();
-    var force = cubicPulse(0, variables.gap*10, dist) * 12;
+    var force = cubicPulse(0, variables.gap*10, dist) * 8;
     return p5.Vector.random2D().setMag(force);
   }
 
