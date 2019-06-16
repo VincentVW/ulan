@@ -185,6 +185,7 @@ function drawLine(p1, p2) {
     // }
   
      this.mouseAcc = function() {
+       // change to oscInputX, oscInputY when using OSC
       var dir = createVector(mouseX, mouseY).sub(this.pos);
       var dist = dir.mag();
       var force = cubicPulse(0, variables.gap*10, dist) * 8;
