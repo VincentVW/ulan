@@ -20,10 +20,11 @@ void setup() {
 
 
 void draw() {
+  
+  pg.smooth(4);
   pg.beginDraw();
 
   pg.clear();
-  pg.smooth(4);
   pg.background(0);
   pg.stroke(255);
   pg.strokeWeight(1);

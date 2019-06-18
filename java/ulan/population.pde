@@ -174,7 +174,7 @@ class Cell {
  
    private PVector mouseAcc() {
      // change to oscInputX, oscInputY when using OSC
-    PVector dir = new PVector(mouseX, mouseY).sub(this.pos);
+    PVector dir = new PVector(oscInputX, oscInputY).sub(this.pos);
     float dist = dir.mag();
     float force = cubicPulse(0, gap*10, dist) * 8;
     return PVector.random2D().setMag(force);
