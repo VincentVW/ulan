@@ -18,7 +18,7 @@ The midi mapping is configuration in `gui.pde` Easiest steps:
 
 - Turn debug mode on so you can see the connected device name and notes played: 
 
-`boolean DEBUG = false;`
+`boolean DEBUG = true;`
 
 - Replace the device string with the device name you see in the outputted debug logs:
 
