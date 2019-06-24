@@ -12,6 +12,7 @@ int minAlpha = 100;
 float speed = 0.06;
 float dnaSpeed = 0.005;
 float dnaSpeedPlus = 0.2;
+float lineWeight = 1.5;
 int width = 1920;
 int height = 1200;
 boolean drawLines = true;

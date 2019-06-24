@@ -35,8 +35,15 @@ void setupGUI(){
      .setValue(0.00)
      ;
      
-  cp5.addToggle("drawLines")
+  cp5.addSlider("lineWeight")
      .setPosition(20,1090)
+     .setSize(400,20)
+     .setRange(0.00,5.00)
+     .setValue(1.00)
+     ;
+     
+  cp5.addToggle("drawLines")
+     .setPosition(20,1120)
      .setSize(50,20)
      .setMode(ControlP5.SWITCH)
      ;
@@ -46,6 +53,7 @@ void setupGUI(){
   midimapper.put( ref( device, 14 ), "minAlpha" );
   midimapper.put( ref( device, 15 ), "speed" );
   midimapper.put( ref( device, 16 ), "dnaSpeed" );
+  midimapper.put( ref( device, 17 ), "lineWeight" );
 
   boolean DEBUG = false;
 

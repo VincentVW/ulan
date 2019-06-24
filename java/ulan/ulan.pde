@@ -5,6 +5,7 @@ SyphonServer server;
 
 Population population;
 
+
 void setup() {
   size(1920, 1200, P3D);
   pg = createGraphics(1920, 1200, P3D);
@@ -27,7 +28,7 @@ void draw() {
   pg.clear();
   pg.background(0);
   pg.stroke(255);
-  pg.strokeWeight(1);
+  pg.strokeWeight(lineWeight);
   population.update();
   population.display();
   pg.endDraw();
